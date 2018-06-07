@@ -150,9 +150,9 @@ class DBHelper {
    * Restaurant image URL.
    */
   static imageUrlForRestaurant(restaurant, size) {
-    const startOfFileEnding = restaurant.photograph.lastIndexOf('.');
-    const imgName = restaurant.photograph.substr(0, startOfFileEnding);
-    const imgType = restaurant.photograph.substr(startOfFileEnding, restaurant.photograph.length);
+    const startOfFileEnding = restaurant.photograph.url.lastIndexOf('.');
+    const imgName = restaurant.photograph.url.substr(0, startOfFileEnding);
+    const imgType = restaurant.photograph.url.substr(startOfFileEnding, restaurant.photograph.length);
     switch(size) {
       case 'small':
         return (`/img/${imgName}-small${imgType}`);

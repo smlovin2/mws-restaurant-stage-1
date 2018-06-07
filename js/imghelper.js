@@ -13,7 +13,7 @@ class ImgHelper {
             if (size === 'small') {
             img = document.createElement('img');
             img.src = DBHelper.imageUrlForRestaurant(restaurant, size);
-            // img.alt = restaurant.photograph.altText;
+            img.alt = restaurant.photograph.alt;
             } else {
             img = document.createElement('source');
             img.srcset = DBHelper.imageUrlForRestaurant(restaurant, size); 
