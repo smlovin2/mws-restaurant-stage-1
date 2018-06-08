@@ -132,6 +132,10 @@ nav h1 a {
 .active {
   border-bottom: 1px solid white; 
 }
+.filter-options label {
+  font-size: 1.5em;
+  color: white;
+}
 .filter-options select {
   background-color: white;
   border: 1px solid #fff;
