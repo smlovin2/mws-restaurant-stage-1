@@ -23,11 +23,17 @@
     </section>
     <section>
       <div class="filter-options">
-        <h2 class="fontawesome-angle-down accordion">Filter</h2>
-        <div class="panel">
+        <h2 class="fontawesome-angle-down accordion" 
+            aria-role="button" 
+            aria-expanded="false"
+            aria-controls="options-panel"
+            tabindex="0">Filter Options</h2>
+        <div id="options-panel" class="panel">
+          <label for="neighborhoods-select">By neighborhood:</label>
           <select id="neighborhoods-select" name="neighborhoods" onchange="updateRestaurants()">
             <option value="all">All Neighborhoods</option>
           </select>
+          <label for="cuisines-select">By cuisine:</label>
           <select id="cuisines-select" name="cuisines" onchange="updateRestaurants()">
             <option value="all">All Cuisines</option>
           </select>

@@ -3,6 +3,8 @@ let restaurants,
   cuisines
 var map
 var markers = []
+const VK_ENTER = 13;
+const VK_SPACE = 32;
 
 /**
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
@@ -145,8 +147,11 @@ createRestaurantHTML = (restaurant) => {
   ImgHelper.addImages(restaurant, picture, 'restaurant-img');
 
   const name = document.createElement('h1');
-  name.innerHTML = restaurant.name;
+  const nameLink = document.createElement('a')
+  nameLink.innerHTML = restaurant.name;
+  nameLink.href = DBHelper.urlForRestaurant(restaurant);
   li.append(name);
+  name.append(nameLink);
 
   const neighborhood = document.createElement('p');
   neighborhood.innerHTML = restaurant.neighborhood;
@@ -155,11 +160,6 @@ createRestaurantHTML = (restaurant) => {
   const address = document.createElement('p');
   address.innerHTML = restaurant.address;
   li.append(address);
-
-  const more = document.createElement('a');
-  more.innerHTML = 'View Details';
-  more.href = DBHelper.urlForRestaurant(restaurant);
-  li.append(more)
 
   return li
 }
@@ -181,19 +181,30 @@ addMarkersToMap = (restaurants = self.restaurants) => {
 /**
  * Add functionality for filter accordion 
  */
-var accordion = document.getElementsByClassName("accordion");
-accordion[0].addEventListener("click", function() {
+var accordion = document.getElementsByClassName("accordion")[0];
+accordion.addEventListener("click", function() {
   this.classList.toggle("active");
 
   var panel = this.nextElementSibling;
   if (panel.style.maxHeight) {
+    this.setAttribute("aria-expanded", "false")
     panel.style.maxHeight = null;
     this.classList.remove('fontawesome-angle-up')
     this.classList.add('fontawesome-angle-down')
   } else {
+    this.setAttribute("aria-expanded", "true")
     panel.style.maxHeight = panel.scrollHeight + "px";
     this.classList.remove('fontawesome-angle-down')
     this.classList.add('fontawesome-angle-up')
+  }
+})
+
+accordion.addEventListener("keypress", function(event) {
+  switch(event.keyCode) {
+    case VK_ENTER:
+    case VK_SPACE:
+      event.preventDefault();
+      this.click();
   }
 })
 
