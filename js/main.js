@@ -188,14 +188,16 @@ accordion.addEventListener("click", function() {
   var panel = this.nextElementSibling;
   if (panel.style.maxHeight) {
     this.setAttribute("aria-expanded", "false")
+    panel.style.display = "none";
     panel.style.maxHeight = null;
-    this.classList.remove('fontawesome-angle-up')
-    this.classList.add('fontawesome-angle-down')
+    this.classList.remove("fontawesome-angle-up")
+    this.classList.add("fontawesome-angle-down")
   } else {
     this.setAttribute("aria-expanded", "true")
+    panel.style.display = "block";
     panel.style.maxHeight = panel.scrollHeight + "px";
-    this.classList.remove('fontawesome-angle-down')
-    this.classList.add('fontawesome-angle-up')
+    this.classList.remove("fontawesome-angle-down")
+    this.classList.add("fontawesome-angle-up")
   }
 })
 
