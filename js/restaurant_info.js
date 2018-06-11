@@ -135,6 +135,7 @@ createReviewHTML = (review) => {
 
   const stars = document.createElement('div');
   stars.className = "review-stars";
+  stars.setAttribute("aria-label", `Rating ${review.rating} out of 5`);
   body.appendChild(stars);
   for (let i = 0; i < review.rating; i++) {
     const rating = document.createElement('span');
