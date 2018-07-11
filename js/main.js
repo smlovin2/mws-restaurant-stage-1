@@ -1,8 +1,4 @@
-let restaurants,
-  neighborhoods,
-  cuisines
-var newMap
-var markers = []
+var newMap;
 const VK_ENTER = 13;
 const VK_SPACE = 32;
 
@@ -19,7 +15,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 /**
  * Fetch all neighborhoods and set their HTML.
  */
-fetchNeighborhoods = () => {
+const fetchNeighborhoods = () => {
   DBHelper.fetchNeighborhoods((error, neighborhoods) => {
     if (error) { // Got an error
       console.error(error);
@@ -28,12 +24,12 @@ fetchNeighborhoods = () => {
       fillNeighborhoodsHTML();
     }
   });
-}
+};
 
 /**
  * Set neighborhoods HTML.
  */
-fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
+const fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
   const select = document.getElementById('neighborhoods-select');
   neighborhoods.forEach(neighborhood => {
     const option = document.createElement('option');
@@ -41,12 +37,12 @@ fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
     option.value = neighborhood;
     select.append(option);
   });
-}
+};
 
 /**
  * Fetch all cuisines and set their HTML.
  */
-fetchCuisines = () => {
+const fetchCuisines = () => {
   DBHelper.fetchCuisines((error, cuisines) => {
     if (error) { // Got an error!
       console.error(error);
@@ -55,12 +51,12 @@ fetchCuisines = () => {
       fillCuisinesHTML();
     }
   });
-}
+};
 
 /**
  * Set cuisines HTML.
  */
-fillCuisinesHTML = (cuisines = self.cuisines) => {
+const fillCuisinesHTML = (cuisines = self.cuisines) => {
   const select = document.getElementById('cuisines-select');
 
   cuisines.forEach(cuisine => {
@@ -69,17 +65,17 @@ fillCuisinesHTML = (cuisines = self.cuisines) => {
     option.value = cuisine;
     select.append(option);
   });
-}
+};
 
 /**
  * Initialize leaflet map, called from HTML.
  */
-initMap = () => {
+const initMap = () => {
   self.newMap = L.map('map', {
-        center: [40.722216, -73.987501],
-        zoom: 12,
-        scrollWheelZoom: false
-      });
+    center: [40.722216, -73.987501],
+    zoom: 12,
+    scrollWheelZoom: false
+  });
   L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.jpg70?access_token={mapboxToken}', {
     mapboxToken: 'pk.eyJ1Ijoic21sb3ZpbjIiLCJhIjoiY2pqZjhhY2E4NHgwNjN2bGY3eTFmY2Q4NSJ9.Y7TGawAwx5qbMJEBszPLuQ',
     maxZoom: 18,
@@ -90,7 +86,7 @@ initMap = () => {
   }).addTo(newMap);
 
   updateRestaurants();
-}
+};
 /*
  * window.initMap = () => {
  * let loc = {
@@ -109,7 +105,7 @@ initMap = () => {
 /**
  * Update page and map for current restaurants.
  */
-updateRestaurants = () => {
+const updateRestaurants = () => {
   const cSelect = document.getElementById('cuisines-select');
   const nSelect = document.getElementById('neighborhoods-select');
 
@@ -126,13 +122,13 @@ updateRestaurants = () => {
       resetRestaurants(restaurants);
       fillRestaurantsHTML();
     }
-  })
-}
+  });
+};
 
 /**
  * Clear current restaurants, their HTML and remove their map markers.
  */
-resetRestaurants = (restaurants) => {
+const resetRestaurants = (restaurants) => {
   // Remove all restaurants
   self.restaurants = [];
   const ul = document.getElementById('restaurants-list');
@@ -144,23 +140,23 @@ resetRestaurants = (restaurants) => {
   }
   self.markers = [];
   self.restaurants = restaurants;
-}
+};
 
 /**
  * Create all restaurants HTML and add them to the webpage.
  */
-fillRestaurantsHTML = (restaurants = self.restaurants) => {
+const fillRestaurantsHTML = (restaurants = self.restaurants) => {
   const ul = document.getElementById('restaurants-list');
   restaurants.forEach(restaurant => {
     ul.append(createRestaurantHTML(restaurant));
   });
   addMarkersToMap();
-}
+};
 
 /**
  * Create restaurant HTML.
  */
-createRestaurantHTML = (restaurant) => {
+const createRestaurantHTML = (restaurant) => {
   const li = document.createElement('li');
 
   const picture = document.createElement('picture');
@@ -169,7 +165,7 @@ createRestaurantHTML = (restaurant) => {
   ImgHelper.addImages(restaurant, picture, 'restaurant-img');
 
   const name = document.createElement('h1');
-  const nameLink = document.createElement('a')
+  const nameLink = document.createElement('a');
   nameLink.innerHTML = restaurant.name;
   nameLink.href = DBHelper.urlForRestaurant(restaurant);
   li.append(name);
@@ -183,24 +179,23 @@ createRestaurantHTML = (restaurant) => {
   address.innerHTML = restaurant.address;
   li.append(address);
 
-  return li
-}
+  return li;
+};
 
 /**
  * Add markers for current restaurants to the map.
  */
-addMarkersToMap = (restaurants = self.restaurants) => {
+const addMarkersToMap = (restaurants = self.restaurants) => {
   restaurants.forEach(restaurant => {
     // Add marker to the map
     const marker = DBHelper.mapMarkerForRestaurant(restaurant, self.newMap);
-    marker.on("click", onClick);
+    marker.on('click', onClick);
     function onClick() {
       window.location.href = marker.options.url;
     }
     self.markers.push(marker);
   });
-
-} 
+};
 /*
  * addMarkersToMap = (restaurants = self.restaurants) => {
  * restaurants.forEach(restaurant => {
@@ -217,44 +212,44 @@ addMarkersToMap = (restaurants = self.restaurants) => {
 /**
  * Add functionality for filter accordion 
  */
-var accordion = document.getElementsByClassName("accordion")[0];
-accordion.addEventListener("click", function() {
-  this.classList.toggle("active");
+var accordion = document.getElementsByClassName('accordion')[0];
+accordion.addEventListener('click', function() {
+  this.classList.toggle('active');
 
   var panel = this.nextElementSibling;
   if (panel.style.maxHeight) {
-    this.setAttribute("aria-expanded", "false")
-    panel.style.display = "none";
+    this.setAttribute('aria-expanded', 'false');
+    panel.style.display = 'none';
     panel.style.maxHeight = null;
-    this.classList.remove("fontawesome-angle-up")
-    this.classList.add("fontawesome-angle-down")
+    this.classList.remove('fontawesome-angle-up');
+    this.classList.add('fontawesome-angle-down');
   } else {
-    this.setAttribute("aria-expanded", "true")
-    panel.style.display = "block";
-    panel.style.maxHeight = panel.scrollHeight + "px";
-    this.classList.remove("fontawesome-angle-down")
-    this.classList.add("fontawesome-angle-up")
+    this.setAttribute('aria-expanded', 'true');
+    panel.style.display = 'block';
+    panel.style.maxHeight = panel.scrollHeight + 'px';
+    this.classList.remove('fontawesome-angle-down');
+    this.classList.add('fontawesome-angle-up');
   }
-})
+});
 
-accordion.addEventListener("keypress", function(event) {
+accordion.addEventListener('keypress', function(event) {
   switch(event.keyCode) {
-    case VK_ENTER:
-    case VK_SPACE:
-      event.preventDefault();
-      this.click();
+  case VK_ENTER:
+  case VK_SPACE:
+    event.preventDefault();
+    this.click();
   }
-})
+});
 
 /**
  * Register the service worker
  */
-registerServiceWorker = () => {
+const registerServiceWorker = () => {
   if (!navigator.serviceWorker) return;
 
   navigator.serviceWorker.register('/sw.js').then(function() {
     console.log('Registration worked!');
   }).catch(function() {
     console.log('Registration failed!');
-  })
-}
+  });
+};
