@@ -28,12 +28,16 @@ class DBHelper {
    */
   static fetchRestaurantById(id, callback) {
     // fetch all restaurants with proper error handling.
-    DBHelper.fetchRestaurants(id).then(restaurants => {
-      const restaurant = restaurants.find(r => r.id == id);
-      if (restaurant) { // Got the restaurant
-        callback(null, restaurant);
-      } else { // Restaurant does not exist in the database
-        callback('Restaurant does not exist', null);
+    DBHelper.fetchRestaurants((error, restaurants) => {
+      if (error) {
+        callback(error, null);
+      }else {
+        const restaurant = restaurants.find(r => r.id == id);
+        if (restaurant) { // Got the restaurant
+          callback(null, restaurant);
+        } else { // Restaurant does not exist in the database
+          callback('Restaurant does not exist', null);
+        }
       }
     });
   }
@@ -43,10 +47,14 @@ class DBHelper {
    */
   static fetchRestaurantByCuisine(cuisine, callback) {
     // Fetch all restaurants  with proper error handling
-    DBHelper.fetchRestaurants().then(restaurants => {
-      // Filter restaurants to have only given cuisine type
-      const results = restaurants.filter(r => r.cuisine_type == cuisine);
-      callback(null, results);
+    DBHelper.fetchRestaurants((error, restaurants) => {
+      if (error) {
+        callback(error, null);
+      } else {
+        // Filter restaurants to have only given cuisine type
+        const results = restaurants.filter(r => r.cuisine_type == cuisine);
+        callback(null, results);
+      }
     });
   }
 
@@ -55,10 +63,14 @@ class DBHelper {
    */
   static fetchRestaurantByNeighborhood(neighborhood, callback) {
     // Fetch all restaurants
-    DBHelper.fetchRestaurants().then(restaurants => {
-      // Filter restaurants to have only given neighborhood
-      const results = restaurants.filter(r => r.neighborhood == neighborhood);
-      callback(null, results);
+    DBHelper.fetchRestaurants((error, restaurants) => {
+      if (error) {
+        callback(error, null);
+      } else {
+        // Filter restaurants to have only given neighborhood
+        const results = restaurants.filter(r => r.neighborhood == neighborhood);
+        callback(null, results);
+      }
     });
   }
 
