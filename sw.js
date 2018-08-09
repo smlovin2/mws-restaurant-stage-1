@@ -7,9 +7,14 @@ const allCaches = [
 
 self.addEventListener('install', function(event) {
   event.waitUntil(
-      caches.open(staticCacheName).then(function(cache){})
+    caches.open(staticCacheName).then(function(cache){
+      return cache.addAll([
+        'js/main.js',
+        'css/styles.css'
+      ]);
+    })
   );
-})
+});
 
 self.addEventListener('activate', function(event) {
   event.waitUntil(
@@ -24,18 +29,36 @@ self.addEventListener('activate', function(event) {
       );
     })
   );
-})
+});
 
 self.addEventListener('fetch', function(event) {
+  const requestUrl = new URL(event.request.url);
+
+  if (requestUrl.origin === location.origin) {
+    if (requestUrl.pathname.startsWith('/img/')) {
+      event.respondWith(serveImg(event.request ));
+      return;
+    }
+  }
+
   event.respondWith(
     caches.match(event.request).then(function(response) {
-      if (response) return response;
-      return fetch(event.request).then(function(response) {
-        caches.open(staticCacheName).then(function(cache) {
-          cache.put(event.request, response);
-        });
-        return response.clone();
-      });
+      return response || fetch(event.request);
     })
-  )
-})
+  );
+});
+
+const serveImg = (request) => {
+  const storageUrl = request.url.replace(/-\d*_?[a-zA-Z]+_?\d?x?.jpg$/, '');
+
+  return caches.open(imgsCache).then(function(cache) {
+    return cache.match(storageUrl).then(function(response) {
+      if (response) return response;
+
+      return fetch(request).then(function(networkReponse) {
+        cache.put(storageUrl, networkReponse.clone());
+        return networkReponse;
+      });
+    });
+  });
+};

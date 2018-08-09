@@ -16,10 +16,37 @@ class DBHelper {
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
-    fetch(DBHelper.DATABASE_URL).then(response => {
-      response.json().then(data => { callback(null, data); });
-    }).catch(error => {
-      callback(error, null);
+    DBHelper.getCachedRestaurants(callback).then(function() {
+      fetch(DBHelper.DATABASE_URL).then(response => {
+        response.json().then(data => { 
+
+          DBHelper.openDatabase().then(function(db) {
+            if (!db) return;
+
+            const tx = db.transaction('restaurants', 'readwrite');
+            const store = tx.objectStore('restaurants');
+            data.forEach(function(restaurant) {
+              store.put(restaurant);
+            });
+          });
+
+          callback(null, data); 
+        });
+      }).catch(error => {
+        callback(error, null);
+      });
+    });
+  }
+
+  static getCachedRestaurants(callback) {
+    return DBHelper.openDatabase().then(function(db) {
+      if (!db) return; 
+
+      const store = db.transaction('restaurants').objectStore('restaurants');
+      
+      return store.getAll().then(function(restaurants) {
+        callback(null, restaurants);
+      });
     });
   }
 
@@ -184,4 +211,18 @@ class DBHelper {
    *} 
    */
 
+  /**
+   * Open IDB Database
+   */
+  static openDatabase() {
+    if (!navigator.serviceWorker) {
+      Promise.resolve();
+    }
+
+    return idb.open('restaurant-db', 1, function(upgradeDb) {
+      upgradeDb.createObjectStore('restaurants', {
+        keyPath: 'id'
+      });
+    });
+  }
 }

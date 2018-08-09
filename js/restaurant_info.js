@@ -4,6 +4,7 @@ var newMap;
  * Initialize map as soon as the page is loaded.
  */
 document.addEventListener('DOMContentLoaded', (event) => {  
+  self.found = false;
   initMap();
 });
 
@@ -15,11 +16,13 @@ const initMap = () => {
     if (error) { // Got an error!
       console.error(error);
     } else {      
-      self.newMap = L.map('map', {
-        center: [restaurant.latlng.lat, restaurant.latlng.lng],
-        zoom: 16,
-        scrollWheelZoom: false
-      });
+      if (!self.newMap) {
+        self.newMap = L.map('map', {
+          center: [restaurant.latlng.lat, restaurant.latlng.lng],
+          zoom: 16,
+          scrollWheelZoom: false
+        });
+      }
       L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.jpg70?access_token={mapboxToken}', {
         mapboxToken: 'pk.eyJ1Ijoic21sb3ZpbjIiLCJhIjoiY2pqZjhhY2E4NHgwNjN2bGY3eTFmY2Q4NSJ9.Y7TGawAwx5qbMJEBszPLuQ',
         maxZoom: 18,
@@ -30,6 +33,7 @@ const initMap = () => {
       }).addTo(newMap);
       fillBreadcrumb();
       DBHelper.mapMarkerForRestaurant(self.restaurant, self.newMap);
+      self.found = true;
     }
   });
 }; 
@@ -71,6 +75,7 @@ const fetchRestaurantFromURL = (callback) => {
         console.error(error);
         return;
       }
+      if(self.found) return;
       fillRestaurantHTML();
       callback(null, restaurant);
     });
