@@ -1,16 +1,27 @@
 const staticCacheName = 'restaurant-cache-v25';
 const imgsCache = 'restaurant-imgs';
+const leafletCache = 'leaflet-cache';
+const fontsCache = 'fonts-cache';
 const allCaches = [
   staticCacheName,
-  imgsCache
+  imgsCache,
+  leafletCache,
+  fontsCache
 ];
 
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(staticCacheName).then(function(cache){
       return cache.addAll([
+        '/',
+        'index.html',
         'js/main.js',
-        'css/styles.css'
+        'js/restaurant_info.js',
+        'js/dbhelper.js',
+        'js/imghelper.js',
+        'js/idb.js',
+        'css/styles.css',
+        'css/responsive.css'
       ]);
     })
   );
@@ -35,10 +46,33 @@ self.addEventListener('fetch', function(event) {
   const requestUrl = new URL(event.request.url);
 
   if (requestUrl.origin === location.origin) {
+    if (requestUrl.pathname.startsWith('/restaurant.html')) {
+      event.respondWith(
+        caches.match(event.request).then(function(response) {
+          if (response) return response;
+
+          return fetch(event.request).then(function(response) {
+            caches.open(staticCacheName).then(function(cache) {
+              cache.put(event.request, response.clone());
+              return response;
+            });
+          });
+        })
+      );
+    }
     if (requestUrl.pathname.startsWith('/img/')) {
       event.respondWith(serveImg(event.request ));
       return;
     }
+  }
+
+  if (requestUrl.pathname.includes('leaflet')) {
+    event.respondWith(serveLeaflet(event.request));
+    return;
+  }
+  if (requestUrl.pathname.includes('font')) {
+    event.respondWith(serveFont(event.request));
+    return;
   }
 
   event.respondWith(
@@ -57,6 +91,30 @@ const serveImg = (request) => {
 
       return fetch(request).then(function(networkReponse) {
         cache.put(storageUrl, networkReponse.clone());
+        return networkReponse;
+      });
+    });
+  });
+};
+
+const serveLeaflet = (request) => {
+  return caches.open(leafletCache).then(function(cache) {
+    return cache.match(request).then(function(response) {
+      if (response) return response;
+      return fetch(request).then(function(networkReponse) {
+        cache.put(request, networkReponse.clone());
+        return networkReponse;
+      });
+    });
+  });
+};
+
+const serveFont = (request) => {
+  return caches.open(fontsCache).then(function(cache) {
+    return cache.match(request).then(function(response) {
+      if (response) return response;
+      return fetch(request).then(function(networkReponse) {
+        cache.put(request, networkReponse.clone());
         return networkReponse;
       });
     });
