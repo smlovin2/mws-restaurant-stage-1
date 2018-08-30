@@ -103,7 +103,7 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
     fillRestaurantHoursHTML();
   }
   // fill reviews
-  fillReviewsHTML();
+  findAndFillReviewsHTML();
 };
 
 /**
@@ -127,14 +127,32 @@ const fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hour
 };
 
 /**
+ * Check if we have the reviews, if not go find them, then fill in the HTML
+ */
+const findAndFillReviewsHTML = () => {
+  if(self.reviews) {
+    fillReviewsHTML(self.reviews);
+  } else {
+    DBHelper.fetchReviews(self.restaurant.id, (error, reviews) => {
+      if (error) {
+        console.error(error);
+        return
+      } else {
+        self.reviews = reviews;
+        fillReviewsHTML(reviews);
+      }
+    });
+  }
+};
+
+/**
  * Create all reviews HTML and add them to the webpage.
  */
-const fillReviewsHTML = (reviews = self.restaurant.reviews) => {
+const fillReviewsHTML = (reviews) => {
   const container = document.getElementById('reviews-container');
   const title = document.createElement('h2');
   title.innerHTML = 'Reviews';
   container.appendChild(title);
-
   if (!reviews) {
     const noReviews = document.createElement('p');
     noReviews.innerHTML = 'No reviews yet!';
@@ -146,7 +164,7 @@ const fillReviewsHTML = (reviews = self.restaurant.reviews) => {
     ul.appendChild(createReviewHTML(review));
   });
   container.appendChild(ul);
-};
+}
 
 /**
  * Create review HTML and add it to the webpage.
@@ -163,7 +181,8 @@ const createReviewHTML = (review) => {
 
   const date = document.createElement('p');
   date.className = 'review-date';
-  date.innerHTML = review.date;
+  const ts = new Date(review.createdAt);
+  date.innerHTML = ts.toDateString();
   header.appendChild(date);
 
   const body = document.createElement('div');

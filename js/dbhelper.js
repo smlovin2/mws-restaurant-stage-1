@@ -7,9 +7,14 @@ class DBHelper {
    * Database URL.
    * Change this to restaurants.json file location on your server.
    */
-  static get DATABASE_URL() {
+  static get RESTAURANTS_URL() {
     const port = 1337; // Change this to your server port
     return `http://localhost:${port}/restaurants`;
+  }
+
+  static get REVIEWS_URL() {
+    const port = 1337;
+    return `http://localhost:${port}/reviews`;
   }
 
   /**
@@ -17,7 +22,7 @@ class DBHelper {
    */
   static fetchRestaurants(callback) {
     DBHelper.getCachedRestaurants(callback).then(function() {
-      fetch(DBHelper.DATABASE_URL).then(response => {
+      fetch(DBHelper.RESTAURANTS_URL).then(response => {
         response.json().then(data => { 
 
           DBHelper.openDatabase().then(function(db) {
@@ -159,6 +164,46 @@ class DBHelper {
   }
 
   /**
+   * Fetch reviews, if restaurantId is given get only reviews for that restaurant
+   */
+  static fetchReviews(restaurantId, callback) {
+    DBHelper.getCachedReviews(callback, restaurantId).then(dbReviews => {
+      fetch(DBHelper.REVIEWS_URL + `${restaurantId ? '/?restaurant_id=' + restaurantId : ''}`).then(response => {
+        response.json().then(data => {
+          DBHelper.openDatabase().then(db => {
+            if (!db) return;
+
+            const tx = db.transaction('reviews', 'readwrite');
+            const store = tx.objectStore('reviews');
+            data.forEach(function(review) {
+              store.put(review);
+            });
+          });
+
+          callback(null, data);
+        });
+      }).catch(error => {
+        callback(error, null);
+        callback(null, dbReviews);
+      });
+    });
+  }
+
+  static getCachedReviews(callback, restaurantId) {
+    return DBHelper.openDatabase().then(function(db) {
+      if (!db) return; 
+
+      const store = db.transaction('reviews').objectStore('reviews');
+      if (restaurantId) {
+        const index = store.index('restaurant_id');
+        return index.getAll(restaurantId)
+      } else {
+        return store.getAll()
+      }
+    });
+  }
+
+  /**
    * Restaurant page URL.
    */
   static urlForRestaurant(restaurant) {
@@ -219,10 +264,18 @@ class DBHelper {
       Promise.resolve();
     }
 
-    return idb.open('restaurant-db', 1, function(upgradeDb) {
-      upgradeDb.createObjectStore('restaurants', {
-        keyPath: 'id'
-      });
+    return idb.open('restaurant-db', 2, function(upgradeDb) {
+      switch(upgradeDb.oldVersion) {
+        case 0:
+          upgradeDb.createObjectStore('restaurants', {
+            keyPath: 'id'
+          });
+        case 1:
+          const reviewStore = upgradeDb.createObjectStore('reviews', {
+            keyPath: 'id'
+          });
+          reviewStore.createIndex('restaurant_id', 'restaurant_id');
+      }
     });
   }
 }
