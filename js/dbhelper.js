@@ -196,9 +196,9 @@ class DBHelper {
       const store = db.transaction('reviews').objectStore('reviews');
       if (restaurantId) {
         const index = store.index('restaurant_id');
-        return index.getAll(restaurantId)
+        return index.getAll(restaurantId);
       } else {
-        return store.getAll()
+        return store.getAll();
       }
     });
   }
@@ -266,15 +266,17 @@ class DBHelper {
 
     return idb.open('restaurant-db', 2, function(upgradeDb) {
       switch(upgradeDb.oldVersion) {
-        case 0:
-          upgradeDb.createObjectStore('restaurants', {
-            keyPath: 'id'
-          });
-        case 1:
-          const reviewStore = upgradeDb.createObjectStore('reviews', {
-            keyPath: 'id'
-          });
-          reviewStore.createIndex('restaurant_id', 'restaurant_id');
+      case 0:
+        upgradeDb.createObjectStore('restaurants', {
+          keyPath: 'id'
+        });
+        // falls through
+      case 1: {
+        const reviewStore = upgradeDb.createObjectStore('reviews', {
+          keyPath: 'id'
+        });
+        reviewStore.createIndex('restaurant_id', 'restaurant_id');
+      }
       }
     });
   }

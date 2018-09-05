@@ -136,7 +136,7 @@ const findAndFillReviewsHTML = () => {
     DBHelper.fetchReviews(self.restaurant.id, (error, reviews) => {
       if (error) {
         console.error(error);
-        return
+        return;
       } else {
         self.reviews = reviews;
         fillReviewsHTML(reviews);
@@ -164,7 +164,7 @@ const fillReviewsHTML = (reviews) => {
     ul.appendChild(createReviewHTML(review));
   });
   container.appendChild(ul);
-}
+};
 
 /**
  * Create review HTML and add it to the webpage.
