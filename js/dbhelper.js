@@ -283,30 +283,71 @@ class DBHelper {
   }
 
   static postReview(data) {
-    DBHelper.cacheNewReview(data);
-
+    data.sentToAPI = true;
     return fetch(DBHelper.REVIEWS_URL, {
       method: 'POST',
-      body: data
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify(data)
+    }).then(() => {
+      return DBHelper.cacheNewReview(data);
+    }).catch(() => {
+      data.sentToAPI = false;
+      return DBHelper.cacheNewReview(data);
     });
   }
 
-  static cacheNewReview(data) {
-    DBHelper.openDatabase().then(db => {
-      if (!db) return;
-      
-      let review = {};
-      for (const pair of data) {
-        let key = pair[0];
-        let val = pair[1];
+  static formatData(data) {
+    let review = {};
+    for (const pair of data) {
+      let key = pair[0];
+      let val = pair[1];
 
-        if (key === 'restaurant_id' || key === 'rating') val = parseInt(val);
-        review[key] = val;
-      }
+      if (key === 'restaurant_id' || key === 'rating') val = parseInt(val);
+      review[key] = val;
+    }
+
+    return review;
+  }
+
+  static cacheNewReview(data) {
+    return DBHelper.openDatabase().then(db => {
+      if (!db) return;
 
       const tx = db.transaction('reviews', 'readwrite');
       const store = tx.objectStore('reviews');
-      store.put(review);
+      return store.put(data);
     });
   } 
+
+  static reattemptPostReview() {
+    console.log('WE\'RE HERE');
+    DBHelper.openDatabase().then(db => {
+      if(!db) return;
+
+      const store = db.transaction('reviews').objectStore('reviews');
+      store.getAll().then(allReviews => {
+        if (allReviews) {
+          const reviewsToSend = allReviews.filter(review => review.sentToAPI == false);
+          reviewsToSend.forEach(DBHelper.postReview);
+        }
+      });
+    });
+  }
+
+  static postFavorite(id, isFavorite) {
+    return fetch(DBHelper.RESTAURANTS_URL + '/' + id, {
+      method: 'PUT',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify({'is_favorite': isFavorite})
+    }).then(response => {
+      return response.json();
+    }).then(restaurant => {
+      return DBHelper.openDatabase().then(db => {
+        if(!db) return;
+        const tx = db.transaction('restaurants', 'readwrite');
+        const store = tx.objectStore('restaurants');
+        return store.put(restaurant);
+      });
+    });
+  }
 }

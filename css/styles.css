@@ -96,7 +96,7 @@ nav h1 a {
 
 /* Add a color to all links inside the list */
 #breadcrumb li a {
-    color: #0275d8;
+    color: #024D92;
     text-decoration: none;
 }
 
@@ -333,6 +333,7 @@ nav h1 a {
   color: black;
 }
 
+/* this section and the next uses css code similar to that writen by James Barnet and can be found here https://codepen.io/jamesbarnett/pen/vlpkh */
 .rating > input:checked ~ label,
 .rating:not(:checked) > label:hover,
 .rating:not(:checked) > label:hover ~ label {
@@ -385,4 +386,23 @@ nav h1 a {
   font-size: 1.6em;
   box-shadow: 1px 1px #bbb;
   cursor: pointer;
+}
+
+.offline-message {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  background-color: #aa0000;
+  color: white;
+  padding: 20px;
+  display: none;
+  max-width: 300px;
+}
+
+#like-button {
+  font-size: 1.5em;
+}
+
+.fontawesome-heart {
+  color: maroon;
 }

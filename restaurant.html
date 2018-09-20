@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
   <meta charset="utf-8">
@@ -41,7 +41,10 @@
     <!-- End map -->
     <!-- Beginning restaurant -->
     <section id="restaurant-container">
-      <h2 id="restaurant-name"></h2>
+      <div>
+        <h2 id="restaurant-name"></h2>
+        <span role="button" aria-pressed="false" id="like-button" class="fontawesome-heart-empty" aria-label="Favorite button"></span>
+      </div>
       <picture id="restaurant-img"></picture>
       <p id="restaurant-cuisine"></p>
       <p id="restaurant-address"></p>
@@ -53,6 +56,9 @@
       <ul id="reviews-list"></ul>
     </section>
     <!-- End reviews -->
+
+    <!-- Offline Message -->
+    <div class="offline-message">You are currently offline. You can still make changes and we will save your changes when you next go online.</div>
   </main>
   <!-- End main -->
 
