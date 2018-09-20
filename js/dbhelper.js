@@ -167,7 +167,7 @@ class DBHelper {
    * Fetch reviews, if restaurantId is given get only reviews for that restaurant
    */
   static fetchReviews(restaurantId, callback) {
-    DBHelper.getCachedReviews(callback, restaurantId).then(dbReviews => {
+    DBHelper.getCachedReviews(restaurantId).then(dbReviews => {
       fetch(DBHelper.REVIEWS_URL + `${restaurantId ? '/?restaurant_id=' + restaurantId : ''}`).then(response => {
         response.json().then(data => {
           DBHelper.openDatabase().then(db => {
@@ -189,7 +189,7 @@ class DBHelper {
     });
   }
 
-  static getCachedReviews(callback, restaurantId) {
+  static getCachedReviews(restaurantId) {
     return DBHelper.openDatabase().then(function(db) {
       if (!db) return; 
 
@@ -273,11 +273,81 @@ class DBHelper {
         // falls through
       case 1: {
         const reviewStore = upgradeDb.createObjectStore('reviews', {
-          keyPath: 'id'
+          keyPath: 'id',
+          autoIncrement: true
         });
         reviewStore.createIndex('restaurant_id', 'restaurant_id');
       }
       }
+    });
+  }
+
+  static postReview(data) {
+    data.sentToAPI = true;
+    return fetch(DBHelper.REVIEWS_URL, {
+      method: 'POST',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify(data)
+    }).then(() => {
+      return DBHelper.cacheNewReview(data);
+    }).catch(() => {
+      data.sentToAPI = false;
+      return DBHelper.cacheNewReview(data);
+    });
+  }
+
+  static formatData(data) {
+    let review = {};
+    for (const pair of data) {
+      let key = pair[0];
+      let val = pair[1];
+
+      if (key === 'restaurant_id' || key === 'rating') val = parseInt(val);
+      review[key] = val;
+    }
+
+    return review;
+  }
+
+  static cacheNewReview(data) {
+    return DBHelper.openDatabase().then(db => {
+      if (!db) return;
+
+      const tx = db.transaction('reviews', 'readwrite');
+      const store = tx.objectStore('reviews');
+      return store.put(data);
+    });
+  } 
+
+  static reattemptPostReview() {
+    console.log('WE\'RE HERE');
+    DBHelper.openDatabase().then(db => {
+      if(!db) return;
+
+      const store = db.transaction('reviews').objectStore('reviews');
+      store.getAll().then(allReviews => {
+        if (allReviews) {
+          const reviewsToSend = allReviews.filter(review => review.sentToAPI == false);
+          reviewsToSend.forEach(DBHelper.postReview);
+        }
+      });
+    });
+  }
+
+  static postFavorite(id, isFavorite) {
+    return fetch(DBHelper.RESTAURANTS_URL + '/' + id, {
+      method: 'PUT',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify({'is_favorite': isFavorite})
+    }).then(response => {
+      return response.json();
+    }).then(restaurant => {
+      return DBHelper.openDatabase().then(db => {
+        if(!db) return;
+        const tx = db.transaction('restaurants', 'readwrite');
+        const store = tx.objectStore('restaurants');
+        return store.put(restaurant);
+      });
     });
   }
 }

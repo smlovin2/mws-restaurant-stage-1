@@ -6,6 +6,26 @@ var newMap;
 document.addEventListener('DOMContentLoaded', (event) => {  
   self.found = false;
   initMap();
+  const likeButton = document.getElementById('like-button');
+  likeButton.addEventListener('click', function(event) {
+    event.target.classList.toggle('fontawesome-heart-empty');
+    event.target.classList.toggle('fontawesome-heart');
+    
+    // toggle the aria-pressed attribute
+    const pressed = (likeButton.getAttribute('aria-pressed' === 'true'));
+    likeButton.setAttribute('aria-pressed', !pressed);
+    
+    DBHelper.postFavorite(getParameterByName('id'), event.target.classList.contains('fontawesome-heart'));
+  });
+
+  window.addEventListener('online', function() {
+    document.querySelector('.offline-message').style.display = 'none';
+    DBHelper.reattemptPostReview();
+  });
+
+  window.addEventListener('offline', function() {
+    document.querySelector('.offline-message').style.display = 'block';
+  });
 });
 
 /**
@@ -34,6 +54,12 @@ const initMap = () => {
       fillBreadcrumb();
       DBHelper.mapMarkerForRestaurant(self.restaurant, self.newMap);
       self.found = true;
+      if (restaurant.is_favorite) {
+        const elm = document.getElementById('like-button');
+        elm.classList.remove('fontawesome-heart-empty');
+        elm.classList.add('fontawesome-heart');
+        elm.setAttribute('aria-pressed', 'true');
+      }
     }
   });
 }; 
@@ -129,8 +155,8 @@ const fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hour
 /**
  * Check if we have the reviews, if not go find them, then fill in the HTML
  */
-const findAndFillReviewsHTML = () => {
-  if(self.reviews) {
+const findAndFillReviewsHTML = (breakCache) => {
+  if(self.reviews && !breakCache) {
     fillReviewsHTML(self.reviews);
   } else {
     DBHelper.fetchReviews(self.restaurant.id, (error, reviews) => {
@@ -150,9 +176,68 @@ const findAndFillReviewsHTML = () => {
  */
 const fillReviewsHTML = (reviews) => {
   const container = document.getElementById('reviews-container');
+  container.innerHTML = '<ul id="reviews-list"></ul>';
   const title = document.createElement('h2');
   title.innerHTML = 'Reviews';
+
+  // Add new review form
   container.appendChild(title);
+  const newReviewForm = document.createElement('form');
+  newReviewForm.id = 'review-form';
+
+  // 5 star review selection
+  const stars = document.createElement('fieldset');
+  stars.className = 'rating';
+  const maxStars = 5;
+  for (let i = 0; i < maxStars; i++) {
+    const starLabel = document.createElement('label');
+    starLabel.setAttribute('for', `radio${maxStars - i}`);
+    starLabel.className = 'fontawesome-star star';
+    const starInput = document.createElement('input');
+    starInput.setAttribute('type', 'radio');
+    starInput.setAttribute('value', `${maxStars - i}`);
+    starInput.setAttribute('name', 'rating');
+    starInput.setAttribute('id', `radio${maxStars - i}`);
+    stars.appendChild(starInput);
+    stars.appendChild(starLabel);
+  }
+  newReviewForm.appendChild(stars);
+
+  // user name
+  const nameRow = document.createElement('div');
+  nameRow.className = 'name-row';
+  const nameLabel = document.createElement('label');
+  nameLabel.className = 'name-label';
+  nameLabel.setAttribute('for', 'name-input');
+  nameLabel.innerHTML = 'Name: ';
+  const nameInput = document.createElement('input');
+  nameInput.id = 'name-input';
+  nameInput.setAttribute('name', 'name');
+  nameInput.setAttribute('type', 'text');
+  nameRow.appendChild(nameLabel);
+  nameRow.appendChild(nameInput);
+  newReviewForm.appendChild(nameRow);
+
+  // review comment
+  const comment = document.createElement('textarea');
+  comment.id = 'review-comment';
+  comment.placeholder = 'Tell us about your experience here';
+  comment.setAttribute('aria-label', 'Comments section');
+  newReviewForm.appendChild(comment);
+
+  // submit button
+  const buttonRow = document.createElement('div');
+  buttonRow.className = 'button-row';
+  const reviewSubmit = document.createElement('button');
+  reviewSubmit.className = 'submit-button';
+  reviewSubmit.type = 'submit';
+  reviewSubmit.innerHTML = 'Submit';
+  buttonRow.appendChild(reviewSubmit);
+  newReviewForm.appendChild(buttonRow);
+
+  container.appendChild(newReviewForm);
+  addOnSubmitHandler(newReviewForm);
+
   if (!reviews) {
     const noReviews = document.createElement('p');
     noReviews.innerHTML = 'No reviews yet!';
@@ -214,6 +299,37 @@ const createReviewHTML = (review) => {
 };
 
 /**
+ * Add on submit event handler to the review form
+ */
+const addOnSubmitHandler = (form) => {
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    const data = new FormData(event.target);
+    
+    // Check that rating is selected
+    if (!data.has('rating')) {
+      alert('Please give a rating for this review');
+      return;
+    } 
+
+    // Check that name is given
+    if (data.get('name') === '') {
+      alert('Please enter a name for this review');
+      return;
+    } 
+
+    data.append('comments', document.getElementById('review-comment').value);
+    data.append('restaurant_id', getParameterByName('id'));
+    // for (const entry of data) {
+    //   console.log(entry);
+    // }
+    DBHelper.postReview(DBHelper.formatData(data)).then(response => {
+      findAndFillReviewsHTML(true);
+    });
+  });
+};
+
+/**
  * Add restaurant name to the breadcrumb navigation menu
  */
 const fillBreadcrumb = (restaurant=self.restaurant) => {
@@ -238,3 +354,4 @@ const getParameterByName = (name, url) => {
     return '';
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 };
+
