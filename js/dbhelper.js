@@ -168,7 +168,9 @@ class DBHelper {
    */
   static fetchReviews(restaurantId, callback) {
     DBHelper.getCachedReviews(restaurantId).then(dbReviews => {
-      fetch(DBHelper.REVIEWS_URL + `${restaurantId ? '/?restaurant_id=' + restaurantId : ''}`).then(response => {
+      let restaurantIdURL = '';
+      if (restaurantId) restaurantIdURL = '/?restaurant_id=' + restaurantId;
+      fetch(DBHelper.REVIEWS_URL + restaurantIdURL).then(response => {
         response.json().then(data => {
           DBHelper.openDatabase().then(db => {
             if (!db) return;

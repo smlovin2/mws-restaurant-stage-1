@@ -5,6 +5,7 @@ var newMap;
  */
 document.addEventListener('DOMContentLoaded', (event) => {  
   self.found = false;
+  registerServiceWorker();
   initMap();
   const likeButton = document.getElementById('like-button');
   likeButton.addEventListener('click', function(event) {
@@ -26,6 +27,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
   window.addEventListener('offline', function() {
     document.querySelector('.offline-message').style.display = 'block';
   });
+  if (navigator.offLine) {
+    document.querySelector('.offline-message').style.display = 'block';
+  }
 });
 
 /**
@@ -337,3 +341,15 @@ const getParameterByName = (name, url) => {
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 };
 
+/**
+ * Register the service worker
+ */
+const registerServiceWorker = () => {
+  if (!navigator.serviceWorker) return;
+
+  navigator.serviceWorker.register('/sw.js').then(function() {
+    console.log('Registration worked!');
+  }).catch(function() {
+    console.log('Registration failed!');
+  });
+};

@@ -31,12 +31,9 @@ const fetchNeighborhoods = () => {
  */
 const fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
   const select = document.getElementById('neighborhoods-select');
-  neighborhoods.forEach(neighborhood => {
-    const option = document.createElement('option');
-    option.innerHTML = neighborhood;
-    option.value = neighborhood;
-    select.append(option);
-  });
+  for (let neighborhood of neighborhoods) {
+    addOptions(neighborhood, select);
+  }
 };
 
 /**
@@ -58,14 +55,17 @@ const fetchCuisines = () => {
  */
 const fillCuisinesHTML = (cuisines = self.cuisines) => {
   const select = document.getElementById('cuisines-select');
-
-  cuisines.forEach(cuisine => {
-    const option = document.createElement('option');
-    option.innerHTML = cuisine;
-    option.value = cuisine;
-    select.append(option);
-  });
+  for (let cuisine of cuisines) {
+    addOptions(cuisine, select);
+  }
 };
+
+const addOptions = (optionVal, select) => {
+    const option = document.createElement('option');
+    option.innerHTML = optionVal;
+    option.value = optionVal;
+    select.append(option);
+}
 
 /**
  * Initialize leaflet map, called from HTML.
